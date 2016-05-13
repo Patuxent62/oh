@@ -8,9 +8,10 @@
  the result to the transmit output pins.
  
  Arbitration Priority:
- 1) read responses (highest)
- 2) host writes
- 3) read requests from host (lowest)
+ 1) read requests from host to elink cfg (highest)
+ 2) read responses
+ 3) host writes
+ 4) read requests from host (lowest)
  */
 
 module etx_arbiter (/*AUTOARG*/
@@ -63,11 +64,14 @@ module etx_arbiter (/*AUTOARG*/
    //wires  
    wire [3:0] 	   txrd_ctrlmode;
    wire [3:0] 	   txwr_ctrlmode;
+   wire [31:0] 	   txrd_dstaddr;
+   wire 	   txrd_cfg_match;
    wire 	   access_in;   
    wire [PW-1:0]   etx_packet_mux;
    wire 	   txrr_grant;
    wire 	   txrd_grant;
    wire 	   txwr_grant;  
+   wire            txrd_cfg_grant;
    wire [PW-1:0]   etx_mux;
    wire [31:0] 	   dstaddr_mux;
    
@@ -76,19 +80,21 @@ module etx_arbiter (/*AUTOARG*/
    //########################################################################
    //TODO: change to round robin!!! (live lock hazard)
    
-   oh_arbiter #(.N(3)) arbiter (.grants({txrd_grant,
-					 txwr_grant, //highest priority
-					 txrr_grant	
+   oh_arbiter #(.N(4)) arbiter (.grants({txrd_grant,
+					 txwr_grant,
+					 txrr_grant,
+					 txrd_cfg_grant // highest priority
 					 }),
 				.requests({txrd_access,
 					   txwr_access,
-					   txrr_access	
+					   txrr_access,
+					   txrd_cfg_match
 					   })
 				);
    oh_mux3 #(.DW(PW))
    mux3(.out	(etx_mux[PW-1:0]),
 	.in0	(txwr_packet[PW-1:0]),.sel0 (txwr_grant),
-	.in1	(txrd_packet[PW-1:0]),.sel1 (txrd_grant),
+	.in1	(txrd_packet[PW-1:0]),.sel1 (txrd_grant | txrd_cfg_grant),
 	.in2	(txrr_packet[PW-1:0]),.sel2 (txrr_grant)
 	);
 
@@ -115,7 +121,8 @@ module etx_arbiter (/*AUTOARG*/
    //#####################################################################
    assign access_in = txwr_grant |
 		      txrd_grant |
-		      txrr_grant;
+		      txrr_grant |
+		      txrd_cfg_grant;
 
 /*   assign access_in = (txwr_grant & ~txwr_wait) |
 		      (txrd_grant & ~txrd_wait) |
@@ -133,6 +140,17 @@ module etx_arbiter (/*AUTOARG*/
 	.packet_in	(etx_mux[PW-1:0]));
    
    assign cfg_match = (dstaddr_mux[31:20]==ID);
+
+   packet2emesh #(.AW(AW))
+   p2e (.write_in       (),
+        .datamode_in    (),
+        .ctrlmode_in    (),
+        .dstaddr_in     (txrd_dstaddr[31:0]),
+        .srcaddr_in     (),
+        .data_in        (),
+        .packet_in      (txrd_packet[PW-1:0]));
+
+   assign txrd_cfg_match = (txrd_dstaddr[31:20]==ID);
 
    //access decode
     always @ (posedge clk)
