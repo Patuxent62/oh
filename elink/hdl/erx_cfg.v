@@ -81,6 +81,13 @@ module erx_cfg (/*AUTOARG*/
    reg 		tx_sel;   
    wire [31:0] 	data_mux;
 
+   // readback grants
+   wire         rx_grant;
+   wire         mailbox_grant;
+   wire         dma_grant;
+   wire         tx_grant;
+
+
    
    /*AUTOWIRE*/
    // Beginning of automatic wires (for undeclared instantiated-module outputs)
@@ -250,14 +257,19 @@ module erx_cfg (/*AUTOARG*/
 	tx_sel            <= ecfg_tx_read;
      end
 
-      
-   //readback mux (should be one hot!)
+
+   //readback arbiter (should be round robin?)
+   oh_arbiter #(.N(4))
+   arbiter(.grants		({tx_grant,dma_grant,mailbox_grant,rx_grant}),
+	   .requests		({tx_sel,dma_sel,mailbox_sel,rx_sel}));
+
+   //readback mux
    oh_mux4 #(.DW(32))
    mux4(.out (data_mux[31:0]),
-	.in0 (cfg_rdata[31:0]),    .sel0 (rx_sel),
-	.in1 (mailbox_rdata[31:0]),.sel1 (mailbox_sel),
-	.in2 (edma_rdata[31:0]),   .sel2 (dma_sel),   
-	.in3 (data_out[31:0]),     .sel3 (tx_sel)     
+	.in0 (cfg_rdata[31:0]),    .sel0 (rx_grant),
+	.in1 (mailbox_rdata[31:0]),.sel1 (mailbox_grant),
+	.in2 (edma_rdata[31:0]),   .sel2 (dma_grant),
+	.in3 (data_out[31:0]),     .sel3 (tx_grant)
 	);
 
    emesh2packet #(.AW(AW))
