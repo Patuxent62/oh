@@ -118,20 +118,68 @@ module spi_slave_io #( parameter PW = 104  // packet width
    //# TX SHIFT REGISTER
    //#################################
 
-   assign tx_load   = byte_done; // & (spi_state[1:0]==`SPI_CMD);
-   assign tx_shift  = ~ss & spi_en;
-   
+   assign tx_shift  = tx_clk_pulse & ~ss & spi_en;
+
+   reg tx_clk;
+   always @(sclk or ss or nreset)
+     if (!ss & !sclk & nreset)
+       tx_clk <= 'b1;
+     else if (!ss & (spi_state[1:0] == `SPI_IDLE) & !(|bit_count[7:0]))
+       tx_clk <= 'b1;
+     else
+       tx_clk <= 'b0;
+
+
+   wire tx_clk_sync;
+   oh_dsync dsync3 (.nreset (nreset),
+		      .dout    (tx_clk_sync),
+		      .clk    (clk),
+		      .din     (tx_clk));
+
+   wire tx_clk_pulse;
+   //create single cycle pulse
+   oh_rise2pulse r2p3 (.nreset (nreset),
+		      .out    (tx_clk_pulse),
+		      .clk    (clk),
+		      .in     (tx_clk_sync));
+
+   wire tx_load_pulse;
+   assign tx_load_pulse = tx_clk_pulse & byte_done;
+
+
+
+   wire tx_load;
+   assign tx_load   = byte_done;
+   wire tx_load_sync;
+
+   /*
+   oh_dsync dsync2 (.nreset (nreset),
+		      .dout   (tx_load_sync),
+		      .clk    (clk),
+		      .din    (byte_done));
+
+   //create single cycle pulse
+   oh_rise2pulse r2p2 (.nreset (nreset),
+		      .out    (tx_load),
+		      .clk    (clk),
+		      .in     (tx_load_sync));
+		    */
+
+   reg tx_load_reg;
+   always @(posedge clk)
+     tx_load_reg <= tx_load_pulse & (|bit_count[7:0]);
+
    oh_par2ser #(.PW(8),
 		.SW(1))
    tx_par2ser (.dout	   (miso),
 	       .access_out (),
 	       .wait_out   (tx_wait),
-	       .clk	   (sclk), // shift out on positive edge
+	       .clk	   (clk), // shift out on negative edge
 	       .nreset	   (~ss),
 	       .din	   (spi_rdata[7:0]),
 	       .shift      (tx_shift),
 	       .lsbfirst   (lsbfirst),
-	       .load       (tx_load),
+	       .load       (tx_load_reg),
 	       .datasize   (8'd7),
 	       .fill       (1'b0),
 	       .wait_in    (1'b0));

@@ -151,6 +151,13 @@ module spi_master_io
 	    .clk (clk),
 	    .in	 (ss));
 
+   // sample at pos edge
+   reg miso_reg;
+   always @(posedge sclk)
+     miso_reg <= miso;
+
+   //wire rx_shift;
+   assign rx_shift = (spi_state[1:0] == `SPI_DATA) & period_match & ~ss;//period_match
    oh_ser2par #(.PW(64),
 		.SW(1))
    ser2par (//output
@@ -159,7 +166,7 @@ module spi_master_io
 	    .din	(miso),           // serial data in
 	    .clk	(clk),            // shift clk
 	    .lsbfirst	(lsbfirst),       // shift direction
-	    .shift	(shift));         // shift data
+	    .shift	(rx_shift));         // shift data
          
 endmodule // spi_master_io
 // Local Variables:

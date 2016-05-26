@@ -11,7 +11,8 @@ module spi_master_fifo #( parameter  DEPTH = 16,            // fifo entries
 			  parameter  PW    = 104,           // input packet width   
 			  parameter  SW    = 8,             // io packet width   
 			  parameter  FAW   = $clog2(DEPTH), // fifo address width   
-			  parameter  SRW   = $clog2(PW/SW)  // serialization factor
+			  parameter  SRW   = $clog2(PW/SW), // serialization factor
+			  parameter  TARGET = "GENERIC"     // XILINX,ALTERA,GENERIC,ASIC
 			  )
    (
     //clk,reset, cfg
@@ -41,6 +42,7 @@ module spi_master_fifo #( parameter  DEPTH = 16,            // fifo entries
    wire [AW-1:0]	data_in;		// From p2e of packet2emesh.v
    wire [1:0]		datamode_in;		// From p2e of packet2emesh.v
    wire [AW-1:0]	dstaddr_in;		// From p2e of packet2emesh.v
+   wire			fifo_full;		// From fifo of oh_fifo_cdc.v
    wire [AW-1:0]	srcaddr_in;		// From p2e of packet2emesh.v
    wire			write_in;		// From p2e of packet2emesh.v
    // End of automatics
@@ -69,7 +71,8 @@ module spi_master_fifo #( parameter  DEPTH = 16,            // fifo entries
 		      access_in  &
 		      ~fifo_wait &
 		      (dstaddr_in[5:0]==`SPI_TX);
-     
+    
+   wire fifo_wait;
    assign wait_out = fifo_wait; // & tx_write;
 
    //epiphany mode works in msb or lsb mode
@@ -79,10 +82,13 @@ module spi_master_fifo #( parameter  DEPTH = 16,            // fifo entries
    assign tx_data[PW-1:0] = {{(40){1'b0}},
 			     srcaddr_in[AW-1:0], 
 			     data_in[AW-1:0]};
-   
+  
    //##################################
    //# FIFO PACKET WRITE
    //##################################
+
+   wire fifo_fifo_wait;
+   wire fifo_access;
 
    oh_par2ser #(.PW(PW),
 		.SW(SW))
@@ -106,6 +112,14 @@ module spi_master_fifo #( parameter  DEPTH = 16,            // fifo entries
    //# FIFO
    //###################################
 
+   /*
+   //Rest synchronization (for safety, assume incoming reset is async)
+   wire sync_nreset;
+   oh_dsync dsync(.dout		(sync_nreset),
+		  .clk		(clk),
+		  .din		(nreset),
+		  .nreset	(nreset));
+
    oh_fifo_sync #(.DEPTH(DEPTH),
                   .DW(SW))   
    fifo(// Outputs
@@ -116,10 +130,58 @@ module spi_master_fifo #( parameter  DEPTH = 16,            // fifo entries
 	.rd_count	(),
 	// Inputs
 	.clk		(clk),
-	.nreset		(nreset),
+	.nreset		(sync_nreset),
 	.din		(fifo_din[7:0]),
 	.wr_en		(fifo_wr),
 	.rd_en		(fifo_read));
+
+      */
+
+/*
+   reg [SW-1:0] fifo_dout_reg;
+
+   always @(posedge clk or negedge nreset)
+     if (!nreset)
+       fifo_dout_reg[SW-1:0] <= {(SW){1'b0}};
+     else
+       fifo_dout_reg[SW-1:0] <= fifo_dout[SW-1:0];
+
+   always @(posedge clk or negedge nreset)
+     if (!nreset)
+       fifo_din_reg[SW-1:0] <= {(SW){1'b0}};
+     else
+       fifo_din_reg[SW-1:0] <= fifo_din[SW-1:0];
+*/
+
+
+   // HACK: Hardcoded DW/DEPTH to please XILINX target
+   wire [103:0] fifo_dout_full;
+   assign fifo_dout[SW-1:0] = fifo_dout_full[SW-1:0];
+
+   wire [103:0] packet_in_full;
+   assign packet_in_full[103:0] = {{(104-SW){1'b0}},fifo_din[SW-1:0]};
+
+//   oh_fifo_cdc  #(.DW(SW),
+//		  .DEPTH(DEPTH),
+//		  .TARGET(TARGET))
+   oh_fifo_cdc  #(.DW(104),
+		  .DEPTH(32),
+		  .TARGET(TARGET))
+   fifo  (// Outputs
+	  .wait_out			(),
+	  .access_out			(fifo_access),
+	  .packet_out			(fifo_dout_full[103:0]),
+	  .prog_full			(fifo_prog_full),
+	  .full				(fifo_full),
+	  .empty			(fifo_empty),
+	  // Inputs
+	  .nreset			(nreset),
+	  .clk_in			(clk),
+	  .packet_in			(packet_in_full[103:0]),
+	  .clk_out			(clk),
+	  .access_in			(fifo_wr),
+	  .wait_in			(~fifo_read));
+
 
 endmodule // spi_master_fifo
 
