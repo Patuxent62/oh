@@ -4,8 +4,8 @@ module erx_core (/*AUTOARG*/
    rxrd_packet, rxrr_access, rxrr_packet, rxwr_access, rxwr_packet,
    erx_cfg_wait, mailbox_irq,
    // Inputs
-   nreset, clk, rx_packet, rx_access, rx_burst, rxrd_wait, rxrr_wait,
-   rxwr_wait, erx_cfg_access, erx_cfg_packet
+   nreset, clk, rx_packet, rx_access, rx_burst, rx_burst_incr_addr,
+   rxrd_wait, rxrr_wait, rxwr_wait, erx_cfg_access, erx_cfg_packet
    );
 
    parameter AW      = 32;
@@ -22,6 +22,7 @@ module erx_core (/*AUTOARG*/
    input [PW-1:0] 	rx_packet;
    input 		rx_access;
    input 		rx_burst;
+   input		rx_burst_incr_addr;
    output 		rx_rd_wait;
    output 		rx_wr_wait;
    output [44:0] 	idelay_value;
@@ -103,6 +104,7 @@ module erx_core (/*AUTOARG*/
 		 .test_mode		(test_mode),
 		 .rx_packet		(rx_packet[PW-1:0]),
 		 .rx_burst		(rx_burst),
+		 .rx_burst_incr_addr	(rx_burst_incr_addr),
 		 .rx_access		(rx_access));
 
    /**************************************************************/

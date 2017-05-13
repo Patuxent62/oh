@@ -8,7 +8,7 @@ module erx_protocol (/*AUTOARG*/
    // Outputs
    erx_access, erx_packet,
    // Inputs
-   clk, test_mode, rx_packet, rx_burst, rx_access
+   clk, test_mode, rx_packet, rx_burst, rx_burst_incr_addr, rx_access
    );
 
    parameter AW   = 32;
@@ -26,6 +26,7 @@ module erx_protocol (/*AUTOARG*/
    
    input [PW-1:0]  rx_packet;
    input 	   rx_burst;
+   input 	   rx_burst_incr_addr;
    input 	   rx_access;
    
    // Output to MMU / filter
@@ -48,8 +49,10 @@ module erx_protocol (/*AUTOARG*/
      if(rx_access)
        dstaddr_reg[31:0]    <= dstaddr_mux[31:0];
 
-   assign dstaddr_next[31:0] = dstaddr_reg[31:0] + 4'b1000;
-   
+   assign dstaddr_next[31:0] = rx_burst_incr_addr ?
+				  dstaddr_reg[31:0] + 4'b1000 :
+				  dstaddr_reg[31:0] + 4'b0000;
+
    assign dstaddr_mux[31:0]  =  rx_burst ? dstaddr_next[31:0] :
 			                   rx_addr[31:0];
                   

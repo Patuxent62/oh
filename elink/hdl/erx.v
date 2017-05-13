@@ -68,6 +68,7 @@ module erx (/*AUTOARG*/
    wire			load_taps;		// From erx_core of erx_core.v
    wire			rx_access;		// From erx_io of erx_io.v
    wire			rx_burst;		// From erx_io of erx_io.v
+   wire			rx_burst_incr_addr;	// From erx_io of erx_io.v
    wire			rx_clkin;		// From erx_io of erx_io.v
    wire			rx_lclk;		// From erx_clocks of erx_clocks.v
    wire [PW-1:0]	rx_packet;		// From erx_io of erx_io.v
@@ -115,6 +116,7 @@ module erx (/*AUTOARG*/
 	   .rxo_rd_wait_n		(rxo_rd_wait_n),
 	   .rx_access			(rx_access),
 	   .rx_burst			(rx_burst),
+	   .rx_burst_incr_addr		(rx_burst_incr_addr),
 	   .rx_packet			(rx_packet[PW-1:0]),
 	   // Inputs
 	   .erx_io_nreset		(erx_io_nreset),
@@ -168,6 +170,7 @@ module erx (/*AUTOARG*/
 		      .rx_packet	(rx_packet[PW-1:0]),	 // Templated
 		      .rx_access	(rx_access),		 // Templated
 		      .rx_burst		(rx_burst),
+		      .rx_burst_incr_addr(rx_burst_incr_addr),
 		      .rxrd_wait	(rxrd_fifo_wait),	 // Templated
 		      .rxrr_wait	(rxrr_fifo_wait),	 // Templated
 		      .rxwr_wait	(rxwr_fifo_wait),	 // Templated

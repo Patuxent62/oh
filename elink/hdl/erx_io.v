@@ -5,7 +5,7 @@
 module erx_io (/*AUTOARG*/
    // Outputs
    rx_clkin, rxo_wr_wait_p, rxo_wr_wait_n, rxo_rd_wait_p,
-   rxo_rd_wait_n, rx_access, rx_burst, rx_packet,
+   rxo_rd_wait_n, rx_access, rx_burst, rx_burst_incr_addr, rx_packet,
    // Inputs
    erx_io_nreset, rx_lclk, rx_lclk_div4, idelay_value, load_taps,
    rxi_lclk_p, rxi_lclk_n, rxi_frame_p, rxi_frame_n, rxi_data_p,
@@ -44,6 +44,7 @@ module erx_io (/*AUTOARG*/
    //##########################
    output 	   rx_access;
    output 	   rx_burst;
+   output 	   rx_burst_incr_addr; // increment dstaddr in burst
    output [PW-1:0] rx_packet;
    input           rx_wr_wait;
    input           rx_rd_wait;
@@ -72,6 +73,8 @@ module erx_io (/*AUTOARG*/
    reg 		 rx_access;
    reg [PW-1:0]  rx_packet;
    reg 		 rx_burst;
+   reg 		 rx_burst_incr_addr;
+   reg 		 rx_burst_incr_addr_lclk;
    wire [8:0] 	 rxi_delay_in;
    wire [8:0] 	 rxi_delay_out;
    reg 		 burst_detect;   
@@ -228,7 +231,18 @@ module erx_io (/*AUTOARG*/
        rx_burst          <= 1'b0;
      else if(access_wide)
        rx_burst          <= burst;
-   
+
+   //burst increment dstaddr
+   always @ (posedge rx_lclk)
+     if(access)
+       rx_burst_incr_addr_lclk <= ~rx_sample[2];
+
+   always @ (posedge rx_lclk_div4)
+     if(!erx_io_nreset)
+       rx_burst_incr_addr <= 1'b0;
+     else if(access_wide)
+       rx_burst_incr_addr <= rx_burst_incr_addr_lclk;
+
    //################################
    //# I/O Buffers Instantiation
    //################################
