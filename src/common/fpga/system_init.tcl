@@ -32,11 +32,15 @@ update_ip_catalog
 ###########################################################
 # CREATE BLOCK DESIGN (GUI/TCL COMBO)
 ###########################################################
-   
-create_bd_design "system"
 
+create_bd_design $design
 source $projdir/system_bd.tcl
-make_wrapper -files [get_files $projdir/${design}.srcs/sources_1/bd/system/system.bd] -top
+save_bd_design
+validate_bd_design
+set proj_sys_dir "$projdir/$design.srcs/sources_1/bd/system"
+set_property synth_checkpoint_mode None [get_files  $proj_sys_dir/system.bd]
+generate_target {synthesis implementation} [get_files  $proj_sys_dir/system.bd]
+make_wrapper -files [get_files $proj_sys_dir/system.bd] -top
 
 ###########################################################
 # ADD FILES
@@ -46,8 +50,9 @@ make_wrapper -files [get_files $projdir/${design}.srcs/sources_1/bd/system/syste
 if {[string equal [get_filesets -quiet sources_1] ""]} {
     create_fileset -srcset sources_1
 }
-set top_wrapper $projdir/${design}.srcs/sources_1/bd/system/hdl/system_wrapper.v
+set top_wrapper $proj_sys_dir/hdl/system_wrapper.v
 add_files -norecurse -fileset [get_filesets sources_1] $top_wrapper
+#import_files -force -norecurse -fileset sources_1 $proj_sys_dir/hdl/system_wrapper.v
 
 if {[llength $hdl_files] != 0} {
     add_files -norecurse -fileset [get_filesets sources_1] $hdl_files
