@@ -31,25 +31,26 @@ The library is written in standard Verilog (2005) and contains over 25,000 lines
 
 ## Modules
 
-| FOLDER                                 | STATUS| DESCRIPTION                    |
-|----------------------------------------|-------|--------------------------------|
-|[accelerator](src/accelerator/README.md)| FPGA  | Accelerator tutorial           |
-|[axi](src/axi/README.md)                | FPGA  | AXI master and slave interfaces|
-|[chip](src/chip/README.md)              | SI    | Chip design reference flow     |
-|[common](src/common/README.md)          | SI    | Library of basic components    |
-|[edma](src/edma/README.md)              | HH    | DMA engine                     |
-|[elink](src/elink/README.md)            | SI    | Point to point LVDS link       |
-|[emailbox](src/emailbox/README.md)      | FPGA  | Mailbox with interrupt output  |
-|[emesh](src/emesh/README.md)            | SI    | Emesh interface circuits       |
-|[emmu](src/emmu/README.md)              | FPGA  | Memory translation unit        |
-|[etrace](src/etrace/README.md)          | HH    | Logic Analyzer                 |
-|[gpio](src/gpio/README.md)              | HH    | General Purpose IO             |
-|[mio](src/mio/README.md)                | HH    | Lightweight parallel link      |
-|[pic](src/pic/README.md)                | SI    | Interrupt controller           |
-|[parallella](src/parallella/README.md)  | FPGA  | Parallella FPGA logic          |
-|[risc-v](src/risc-v/README.md)          | HH    | RISC-V implementation          |
-|[spi](src/spi/README.md)                | HH    | SPI master/slave               |
-|[xilibs](src/xilibs/README.md)          | FPGA  | Xilinx simulation models       |
+| FOLDER                                      | STATUS| DESCRIPTION                        |
+|---------------------------------------------|-------|------------------------------------|
+|[accelerator](src/accelerator/README.md)     | FPGA  | Accelerator tutorial               |
+|[axi](src/axi/README.md)                     | FPGA  | AXI master and slave interfaces    |
+|[chip](src/chip/README.md)                   | SI    | Chip design reference flow         |
+|[common](src/common/README.md)               | SI    | Library of basic components        |
+|[edma](src/edma/README.md)                   | HH    | DMA engine                         |
+|[elink](src/elink/README.md)                 | SI    | Point to point LVDS link           |
+|[emailbox](src/emailbox/README.md)           | FPGA  | Mailbox with interrupt output      |
+|[emesh](src/emesh/README.md)                 | SI    | Emesh interface circuits           |
+|[emmu](src/emmu/README.md)                   | FPGA  | Memory translation unit            |
+|[etrace](src/etrace/README.md)               | HH    | Logic Analyzer                     |
+|[gpio](src/gpio/README.md)                   | HH    | General Purpose IO                 |
+|[mio](src/mio/README.md)                     | HH    | Lightweight parallel link          |
+|[pic](src/pic/README.md)                     | SI    | Interrupt controller               |
+|[parallella-Orig](src/parallella/README.md)  | FPGA  | Parallella FPGA logic orig config  |
+|[parallella-eGPIO](src/parallella/README.md) | FPGA  | Parallella FPGA with epiphany GPIO |
+|[risc-v](src/risc-v/README.md)               | HH    | RISC-V implementation              |
+|[spi](src/spi/README.md)                     | HH    | SPI master/slave                   |
+|[xilibs](src/xilibs/README.md)               | FPGA  | Xilinx simulation models           |
 
 **NOTES:**
 * "SI"= Silicon validated

@@ -6,7 +6,7 @@ set design system
 set projdir ./
 
 #Device name
-set partname "xc7z020clg400-1"
+set partname "xc7z010clg400-1"
 
 #Paths to all IP blocks to use in Vivado "system.bd"
 
@@ -20,3 +20,9 @@ set constraints_files [list \
 	../../parallella/fpga/parallella_io.xdc \
 	../../parallella/fpga/parallella_7020_io.xdc \
 	]
+
+###########################################################
+# PREPARE FOR SYNTHESIS
+###########################################################
+set oh_verilog_define "CFG_ASIC=0 CFG_PLATFORM=\"ZYNQ\""
+
